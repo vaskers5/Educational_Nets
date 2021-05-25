@@ -5,4 +5,4 @@
 
 ### 1. Логистическая регрессия
 
-* [Code](https://github.com/vaskers5/Educatinal_Nets/blob/main/Nets/logistic%20regression/LogNet.ipynb)
+* [Code](https://github.com/vaskers5/Educatinal_Nets/blob/main/data/logistic%20regression/LogReg.ipynb)
