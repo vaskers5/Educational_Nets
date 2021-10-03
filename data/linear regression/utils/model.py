@@ -41,14 +41,14 @@ class LinearRegression:
             predict += [np.dot(sample.T, self.weights)]
         return np.array(predict)
 
-    def load_weights(self, path_to_weights):
+    def load_weights(self, path_to_weights: str) -> None:
         with open(path_to_weights, 'r') as f:
             last_version = yaml.load(f)
         self.weights = np.array(last_version['weights'])
         self.alpha = last_version['alpha']
         self.bias = last_version['bias']
 
-    def save_weights(self, path_to_weights):
+    def save_weights(self, path_to_weights: str) -> None:
         last_version = {"weights": self.weights.tolist(),
                         "alpha": self.alpha,
                         "bias": self.bias}
