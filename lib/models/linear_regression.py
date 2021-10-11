@@ -1,56 +1,71 @@
-from typing import List, Callable
+from typing import List
 import numpy as np
-import yaml
-import pandas as pd
+from pathlib import Path
+import pickle
+
+np.random.seed(0)
 
 
 class LinearRegression:
     def __init__(self):
-        self.bias = 0
-        self.weights = np.array([])
-        self.lr = 0
-        self.losses = []
+        self._bias = 0
+        self._weights = None
+        self._lr = 0
+        self._losses = []
         
     def train(self, features: np.ndarray,
               labels: np.ndarray,
-              bias: float = 0.1,
+              _bias: float = 0.1,
               lr: float = 0.001,
               max_epochs: int = 100) -> 'LinearRegression':
+        features = self._process_data(features)
+        self._bias, self._lr = _bias, lr
+        self._weights = np.random.rand(features.shape[1])
+        self._weights[0] = _bias
 
-        self.bias, self.lr = bias, lr
-        self.weights = np.random.rand(features.shape[1])
-        self.weights[0] = bias
-        
         for i in range(max_epochs):
-            old_weights = self.weights.copy()
+            old_weights = self._weights.copy()
             predictions = self.predict(features)
             loss = self.mse_loss(predictions, labels)
             if loss == float('inf'):
-                self.weights = old_weights
+                self._weights = old_weights
                 break
-            self.losses += [loss]
+            self._losses += [loss]
             grad = -(labels - predictions).dot(features) / (2.0 * features.shape[0])
-            self.weights -= self.lr * grad
+            self._weights -= self._lr * grad
         
         return self
 
-    def load_weights(self, path_to_weights: str) -> None:
-        with open(path_to_weights, 'r') as f:
-            last_version = yaml.load(f)
-        self.weights = np.array(last_version['weights'])
-        self.lr = last_version['lr']
+    def load_weights(self, path_to_weights: Path) -> 'LinearRegression':
+        with open(path_to_weights, 'rb') as f:
+            last_version = pickle.load(f)
+        self._weights = np.array(last_version['weights'])
+        self._lr = last_version['lr']
+        return self
 
-    def save_weights(self, path_to_weights: str) -> None:
-        last_version = {"weights": self.weights.tolist(),
-                        "lr": self.lr}
-        with open(path_to_weights, 'w') as f:
-            yaml.dump(last_version, f)
+    def save_weights(self, path_to_weights: Path) -> None:
+        last_version = {"weights": self._weights.tolist(),
+                        "lr": self._lr}
+        with open(path_to_weights, 'wb') as f:
+            pickle.dump(last_version, f)
             
-    def predict(self, features: np.ndarray) -> np.ndarray:
-        return np.dot(features, self.weights)
+    def _predict(self, features: np.ndarray) -> np.ndarray:
+        return np.dot(features, self._weights)
     
+    def get_loss(self) -> List[float]:
+        return self._losses
+
+    def predict(self, features: np.ndarray) -> np.ndarray:
+        if features.shape[1] + 1 == len(self._weights):
+            features = self._process_data(features)
+        return self._predict(features)
+
     @staticmethod
-    def mse_loss(predict: np.array, labels: np.array) -> float:
+    def mse_loss(predict: np.ndarray,
+                 labels: np.ndarray) -> float:
         dif = np.power(predict - labels, 2)
         return dif.sum()/(2 * len(predict))
 
+    @staticmethod
+    def _process_data(features: np.ndarray):
+        return np.c_[features, np.ones(features.shape[0])]
