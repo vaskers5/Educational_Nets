@@ -3,21 +3,24 @@ import numpy as np
 from pathlib import Path
 import pickle
 
-np.random.seed(0)
+
 
 
 class LinearRegression:
-    def __init__(self):
+    def __init__(self, seed: int=42):
         self._bias = 0
         self._weights = None
         self._lr = 0
         self._losses = []
+        self.seed=seed
         
-    def train(self, features: np.ndarray,
+    def train(self,
+              features: np.ndarray,
               labels: np.ndarray,
               _bias: float = 0.1,
               lr: float = 0.001,
               max_epochs: int = 100) -> 'LinearRegression':
+        np.random.seed(self.seed)
         features = self._process_data(features)
         self._bias, self._lr = _bias, lr
         self._weights = np.random.rand(features.shape[1])
@@ -52,7 +55,7 @@ class LinearRegression:
     def _predict(self, features: np.ndarray) -> np.ndarray:
         return np.dot(features, self._weights)
     
-    def get_loss(self) -> List[float]:
+    def get_losses(self) -> List[float]:
         return self._losses
 
     def predict(self, features: np.ndarray) -> np.ndarray:
