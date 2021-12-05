@@ -1,11 +1,9 @@
-from typing import List
 import numpy as np
-from pathlib import Path
-import pickle
 from lib.models.baseModel import BaseModel
+from typing import List
 
 
-class LinearRegression(BaseModel):
+class LogisticRegression(BaseModel):
 
     def train(self,
               features: np.ndarray,
@@ -21,33 +19,21 @@ class LinearRegression(BaseModel):
 
         for i in range(max_epochs):
             old_weights = self._weights.copy()
-            predictions = self.predict(features)
-            loss = self.mse_loss(predictions, labels)
-            if loss == float('inf'):
-                self._weights = old_weights
-                break
-            self._losses += [loss]
-            grad = -(labels - predictions).dot(features) / (2.0 * features.shape[0])
+            preds = self.predict(features)
+            grad = np.dot(preds - labels, features)
             self._weights -= self._lr * grad
-        
         return self
 
-    def _predict(self, features: np.ndarray) -> np.ndarray:
-        return np.dot(features, self._weights)
-    
     def get_losses(self) -> List[float]:
         return self._losses
 
-    def predict(self, features: np.ndarray) -> np.ndarray:
+    def _predict(self, features: np.ndarray) -> np.ndarray:
         if features.shape[1] + 1 == len(self._weights):
             features = self._process_data(features)
-        return self._predict(features)
-
-    @staticmethod
-    def mse_loss(predict: np.ndarray,
-                 labels: np.ndarray) -> float:
-        dif = np.power(predict - labels, 2)
-        return dif.sum()/(2 * len(predict))
+        return self.sigmoid(np.dot(features, self._weights))
+    
+    def predict(self, features: np.ndarray, threshold: float = 0.5) -> np.ndarray:
+        return np.vectorize(lambda x: x >= threshold)(self._predict(features))
 
     @staticmethod
     def _process_data(features: np.ndarray):
