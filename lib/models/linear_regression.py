@@ -2,18 +2,11 @@ from typing import List
 import numpy as np
 from pathlib import Path
 import pickle
+from lib.models.baseModel import BaseModel
 
 
+class LinearRegression(BaseModel):
 
-
-class LinearRegression:
-    def __init__(self, seed: int=42):
-        self._bias = 0
-        self._weights = None
-        self._lr = 0
-        self._losses = []
-        self.seed=seed
-        
     def train(self,
               features: np.ndarray,
               labels: np.ndarray,
@@ -39,19 +32,6 @@ class LinearRegression:
         
         return self
 
-    def load_weights(self, path_to_weights: Path) -> 'LinearRegression':
-        with open(path_to_weights, 'rb') as f:
-            last_version = pickle.load(f)
-        self._weights = np.array(last_version['weights'])
-        self._lr = last_version['lr']
-        return self
-
-    def save_weights(self, path_to_weights: Path) -> None:
-        last_version = {"weights": self._weights.tolist(),
-                        "lr": self._lr}
-        with open(path_to_weights, 'wb') as f:
-            pickle.dump(last_version, f)
-            
     def _predict(self, features: np.ndarray) -> np.ndarray:
         return np.dot(features, self._weights)
     
