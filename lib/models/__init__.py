@@ -1,1 +1,2 @@
-from .linear_regression import LinearRegression
+from lib.models.linear_regression import LinearRegression
+from lib.models.logistic_regrsession import LogisticRegression
